@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Brain, Plus, CheckCircle2, Clock, AlertCircle, Loader2, Sparkles, Lock, Play, FolderOpen } from 'lucide-react';
+import { Brain, Plus, CheckCircle2, Clock, AlertCircle, Loader2, Sparkles, Lock, Play, FolderOpen, RefreshCw} from 'lucide-react';
 
 export default function TasksPage() {
   const router = useRouter();
