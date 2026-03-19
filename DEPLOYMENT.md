@@ -160,3 +160,5 @@ Add this secret in your repository: **Settings → Secrets and variables → Act
 - **GitHub**: https://github.com/aslamlogic/evidentia-app
 - **Production**: https://evidentia.uk
 - **Abacus Console**: Apps Management Console → "2 - Evidentia Legal AI"
+
+<!-- Railway redeploy trigger: 2026-03-19T17:35 -->
