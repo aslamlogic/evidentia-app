@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Transform to include matter at top level for backwards compatibility
-    const transformed = outputs.map(output => ({
+    const transformed = outputs.map((output: any) => ({
       ...output,
       content: output.contentMarkdown,
       matter: output.task?.matter,
