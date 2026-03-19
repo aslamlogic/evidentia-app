@@ -66,3 +66,35 @@ export async function DELETE(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// PATCH /api/intakes/[id] - Unlock intake form
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = getUserFromToken(req);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const intake = await prisma.intakeForm.findFirst({
+      where: { id: params.id, userId: user.sub },
+    });
+
+    if (!intake) {
+      return NextResponse.json({ error: 'Intake form not found' }, { status: 404 });
+    }
+
+    const updated = await prisma.intakeForm.update({
+      where: { id: params.id },
+      data: { locked: false },
+      include: { matter: { select: { id: true, title: true } } },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error('Error unlocking intake:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
