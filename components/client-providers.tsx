@@ -28,7 +28,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
       {children}
-      <Toaster position="top-right" richColors />
+      <Toaster position="bottom-right" richColors />
     </ThemeProvider>
   );
 }
