@@ -529,7 +529,6 @@ export default function MatterDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -548,5 +547,6 @@ export default function MatterDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
   );
 }
