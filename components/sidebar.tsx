@@ -16,11 +16,11 @@ import { TIER_FEATURES } from '@/lib/types';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/intakes', label: 'Intakes', icon: ClipboardList },
   { href: '/matters', label: 'Matters', icon: FolderOpen },
   { href: '/documents', label: 'Documents', icon: FileText },
   { href: '/tasks', label: 'Analysis', icon: Brain },
   { href: '/outputs', label: 'Outputs', icon: FileOutput },
-  { href: '/intakes', label: 'Intakes', icon: ClipboardList },
 ];
 
 const adminItems = [
