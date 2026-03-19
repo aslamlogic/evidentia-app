@@ -7,6 +7,8 @@ import { mattersApi, documentsApi, tasksApi, outputsApi, knowledgeUnitsApi } fro
 import type { Matter, Document, AITask, AIOutput, KnowledgeUnit } from '@/lib/types';
 import { MATTER_TYPE_LABELS, TASK_TYPE_LABELS, TASK_TYPE_DESCRIPTIONS, isTaskAvailableForTier } from '@/lib/types';
 import type { TaskType } from '@/lib/types';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { addNotification } from '@/components/notification-centre';
 import { useAuthStore } from '@/lib/auth-store';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,6 +46,7 @@ export default function MatterDetailPage() {
   const [outputs, setOutputs] = useState<AIOutput[]>([]);
   const [knowledgeUnits, setKnowledgeUnits] = useState<KnowledgeUnit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<{file: File; status: 'queued'|'uploading'|'done'|'failed'; error?: string}[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{done: number; failed: number; total: number} | null>(null);
@@ -132,14 +135,18 @@ export default function MatterDetailPage() {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this matter? This will also delete associated documents, tasks, and outputs.')) return;
+  const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowDeleteDialog(false);
     try {
       await mattersApi.delete(matterId);
-      toast.success('Matter deleted');
+      addNotification('Matter deleted successfully', 'success');
       router.replace('/matters');
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Delete failed');
+      addNotification(err instanceof Error ? err.message : 'Delete failed', 'error');
     }
   };
 
@@ -523,5 +530,23 @@ export default function MatterDetailPage() {
         </DialogContent>
       </Dialog>
     </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Matter</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this matter? This will permanently remove all associated documents, tasks, and outputs. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+              Delete Matter
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
   );
 }
