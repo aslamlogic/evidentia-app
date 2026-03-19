@@ -43,12 +43,7 @@ export default function HomePage() {
               >
                 Request a Demonstration
               </a>
-              <Link
-                href="/login"
-                className="px-6 py-3 bg-white text-slate-700 text-sm font-semibold border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-              >
-                Sign In
-              </Link>
+
             </div>
           </div>
         </div>
