@@ -15,12 +15,12 @@ import {
 import { TIER_FEATURES } from '@/lib/types';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/matters', label: 'Matters', icon: FolderOpen },
-  { href: '/intakes', label: 'Intakes', icon: ClipboardList },
-  { href: '/documents', label: 'Documents', icon: FileText },
-  { href: '/tasks', label: 'Analysis', icon: Brain },
-  { href: '/outputs', label: 'Outputs', icon: FileOutput },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, group: null },
+  { href: '/matters', label: 'Matters', icon: FolderOpen, group: 'Case Setup' },
+  { href: '/intakes', label: 'Intake', icon: ClipboardList, group: 'Case Setup' },
+  { href: '/documents', label: 'Documents', icon: FileText, group: 'Case Setup' },
+  { href: '/tasks', label: 'Analysis', icon: Brain, group: 'Work' },
+  { href: '/outputs', label: 'Outputs', icon: FileOutput, group: 'Results' },
 ];
 
 const adminItems = [
@@ -66,24 +66,32 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto custom-scrollbar">
-        {navItems.map((item) => {
+      <nav className="flex-1 px-3 py-4 overflow-y-auto custom-scrollbar">
+        {navItems.map((item, index) => {
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
+          const prevItem = navItems[index - 1];
+          const showGroupLabel = !collapsed && item.group && item.group !== prevItem?.group;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+            <div key={item.href}>
+              {showGroupLabel && (
+                <p className="px-3 pt-4 pb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                  {item.group}
+                </p>
               )}
-            >
-              <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+              <Link
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                )}
+              >
+                <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            </div>
           );
         })}
 
