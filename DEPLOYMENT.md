@@ -1,0 +1,129 @@
+# Evidentia Legal AI - Deployment Pipeline
+
+## Overview
+
+The Evidentia Legal AI application uses a **GitHub-centred deployment pipeline** with the following components:
+
+| Component | Purpose |
+|---|---|
+| **GitHub Repository** | Central source of truth for all code |
+| **GitHub Actions CI** | Automated build validation on every push |
+| **Abacus Apps** | Production hosting at https://evidentia.uk |
+| **DeepAgent** | Development environment & deployment trigger |
+
+## Architecture
+
+```
+Developer/AI Agent
+       │
+       ▼
+   GitHub (main branch)
+       │
+       ├──► GitHub Actions CI (auto: build & lint)
+       │
+       ▼
+   DeepAgent Environment
+       │  (pull from GitHub)
+       ▼
+   Abacus Apps Platform
+       │  (deploy via console)
+       ▼
+   https://evidentia.uk
+```
+
+## Pipeline Steps
+
+### 1. Code Changes → GitHub
+All code changes should be committed and pushed to the `main` branch:
+```bash
+git add .
+git commit -m "Description of changes"
+git push origin main
+```
+
+### 2. Automated CI (GitHub Actions)
+On every push to `main`, GitHub Actions automatically:
+- Installs dependencies
+- Runs the linter
+- Builds the Next.js application
+- Reports success/failure
+
+Check CI status at: https://github.com/aslamlogic/evidentia-app/actions
+
+### 3. Sync to DeepAgent
+In your DeepAgent session, run the sync script:
+```bash
+bash scripts/sync-and-deploy.sh
+```
+
+This pulls the latest validated code from GitHub.
+
+### 4. Deploy to Production
+After syncing, deploy through one of these methods:
+- **Ask DeepAgent**: "Deploy the latest version to production"
+- **Apps Management Console**: Navigate to the Evidentia Legal AI app and click "Deploy"
+
+### 5. Verify
+Confirm deployment at: https://evidentia.uk
+
+## GitHub Actions Workflows
+
+### CI Workflow (`.github/workflows/ci.yml`)
+- **Trigger**: Push to `main` or Pull Request
+- **Actions**: Install deps → Lint → Build
+- **Purpose**: Validate code before deployment
+
+### Deploy Workflow (`.github/workflows/deploy.yml`)
+- **Trigger**: Push to `main` or manual dispatch
+- **Actions**: Build validation → Deployment readiness check
+- **Purpose**: Confirm code is production-ready
+
+## Manual Deployment Trigger
+
+You can manually trigger deployment from GitHub:
+1. Go to https://github.com/aslamlogic/evidentia-app/actions
+2. Select "Deploy to Abacus" workflow
+3. Click "Run workflow"
+
+## Configuration
+
+### GitHub Secrets (Required)
+Set these in your repository Settings → Secrets → Actions:
+
+| Secret | Description |
+|---|---|
+| `ABACUS_API_KEY` | Your Abacus.AI API key for deployment automation |
+
+### Environment Variables
+See `.env.example` for required environment variables.
+
+## Current Limitations
+
+> **Important**: Abacus AI Deep Agent Apps currently do not support direct GitHub webhook-based auto-deployment. The deployment process requires syncing code through the DeepAgent environment.
+
+### Planned Improvements
+- Full auto-deployment when Abacus adds GitHub webhook support
+- Automated database migrations on deploy
+- Staging environment for pre-production testing
+
+## Troubleshooting
+
+### CI Build Fails
+1. Check the GitHub Actions log for specific errors
+2. Ensure all dependencies are in `package.json`
+3. Verify environment variables are set correctly
+
+### Sync Script Fails
+1. Ensure git is configured with proper access tokens
+2. Check for merge conflicts
+3. Verify the repository URL is correct
+
+### Deployment Not Reflecting Changes
+1. Confirm the sync pulled the latest commit
+2. Check the Abacus Apps Management Console for deploy status
+3. Clear browser cache and retry
+
+## Repository
+- **GitHub**: https://github.com/aslamlogic/evidentia-app
+- **Production**: https://evidentia.uk
+- **Abacus Console**: Apps Management Console → "2 - Evidentia Legal AI"
