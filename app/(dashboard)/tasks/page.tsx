@@ -7,6 +7,7 @@ import { tasksApi, mattersApi, documentsApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import type { AITask, Matter, Document } from '@/lib/types';
 import { TASK_TYPE_LABELS, TASK_TYPE_DESCRIPTIONS, TIER_FEATURES, isTaskAvailableForTier } from '@/lib/types';
+import { addNotification } from '@/components/notification-centre';
 import type { TaskType } from '@/lib/types';
 
 const TIER_TASK_GROUPS = {
@@ -65,8 +66,8 @@ export default function TasksPage() {
   }, [form.matterId]);
 
   const handleCreate = async () => {
-    if (!form.matterId) { toast.error('Select a matter'); return; }
-    if (!form.type) { toast.error('Select a task type'); return; }
+    if (!form.matterId) { addNotification('Select a matter', 'error'); return; }
+    if (!form.type) { addNotification('Select a task type', 'error'); return; }
     setCreating(true);
     try {
       // Combine additional facts with instructions
@@ -78,12 +79,12 @@ export default function TasksPage() {
         combinedInstructions += form.instructions.trim();
       }
       const created = await tasksApi.create({ type: form.type, matterId: form.matterId, instructions: combinedInstructions || undefined, documentIds: form.documentIds.length > 0 ? form.documentIds : undefined });
-      toast.success('Task created');
+      addNotification('Task created successfully', 'success');
       setShowCreate(false);
       setForm({ type: 'case_summary', matterId: '', instructions: '', additionalFacts: '', documentIds: [] });
       router.push(`/tasks/${created?.id}`);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create task');
+      addNotification(err instanceof Error ? err.message : 'Failed to create task', 'error');
     } finally { setCreating(false); }
   };
 
@@ -91,10 +92,10 @@ export default function TasksPage() {
     setExecuting(taskId);
     try {
       await tasksApi.execute(taskId);
-      toast.success('Task execution started');
+      addNotification('Task execution started', 'success');
       fetchData();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Execution failed');
+      addNotification(err instanceof Error ? err.message : 'Execution failed', 'error');
     } finally { setExecuting(null); }
   };
 
@@ -159,6 +160,12 @@ export default function TasksPage() {
                         <Button size="sm" className="h-8 gap-1.5" onClick={() => handleExecute(task?.id ?? '')} disabled={executing === task?.id}>
                           {executing === task?.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
                           Execute
+                        </Button>
+                      )}
+                      {task?.status === 'failed' && (
+                        <Button size="sm" variant="outline" className="h-8 gap-1.5 border-red-200 text-red-600 hover:bg-red-50" onClick={() => handleExecute(task?.id ?? '')} disabled={executing === task?.id}>
+                          {executing === task?.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                          Retry
                         </Button>
                       )}
                       {task?.status === 'succeeded' && (
