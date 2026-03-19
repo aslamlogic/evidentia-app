@@ -59,6 +59,17 @@ export default function IntakesPage() {
     } finally { setLocking(null); }
   };
 
+  const handleUnlock = async (id: string) => {
+    setLocking(id);
+    try {
+      await intakesApi.unlock(id);
+      addNotification('Intake unlocked', 'success');
+      fetchData();
+    } catch (err: unknown) {
+      addNotification(err instanceof Error ? err.message : 'Unlock failed', 'error');
+    } finally { setLocking(null); }
+  };
+
   const handleView = async (id: string) => {
     try {
       const data = await intakesApi.get(id);
@@ -124,9 +135,13 @@ export default function IntakesPage() {
                 <Button variant="ghost" size="icon" onClick={() => handleView(intake?.id ?? '')} className="h-8 w-8">
                   <Eye className="w-4 h-4" />
                 </Button>
-                {!intake?.locked && (
-                  <Button variant="outline" size="icon" onClick={() => handleLock(intake?.id ?? '')} disabled={locking === intake?.id} className="h-8 w-8">
+                {!intake?.locked ? (
+                  <Button variant="outline" size="icon" onClick={() => handleLock(intake?.id ?? '')} disabled={locking === intake?.id} className="h-8 w-8" title="Lock intake">
                     {locking === intake?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="icon" onClick={() => handleUnlock(intake?.id ?? '')} disabled={locking === intake?.id} className="h-8 w-8 border-amber-200 text-amber-600 hover:bg-amber-50" title="Unlock intake">
+                    {locking === intake?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
                   </Button>
                 )}
               </div>
