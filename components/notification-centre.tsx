@@ -15,7 +15,7 @@ export type NotificationEvent = {
 const STORAGE_KEY = 'evidentia_notifications';
 const MAX_EVENTS = 10;
 
-export function addNotification(type: NotificationEvent['type'], message: string) {
+export function addNotification(message: string, type: NotificationEvent['type'] = 'info') {
   try {
     const existing: NotificationEvent[] = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
     const updated = [
