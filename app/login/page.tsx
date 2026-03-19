@@ -72,7 +72,7 @@ export default function LoginPage() {
           <Card className="shadow-xl border-0 bg-card">
             <CardHeader className="space-y-1 pb-4">
               <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-              <CardDescription>Access your legal intelligence dashboard</CardDescription>
+              <CardDescription>Access your legal reasoning dashboard</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
