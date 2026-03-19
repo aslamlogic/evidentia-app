@@ -97,6 +97,39 @@ Set these in your repository Settings → Secrets → Actions:
 ### Environment Variables
 See `.env.example` for required environment variables.
 
+## Setup: Adding GitHub Actions Workflows
+
+The workflow files are located in `.github/workflows/` in your local project but need to be added to GitHub manually due to permission restrictions. To add them:
+
+### Option A: Via GitHub Web UI
+1. Go to https://github.com/aslamlogic/evidentia-app
+2. Click **Add file** → **Create new file**
+3. Name it `.github/workflows/ci.yml`
+4. Paste the contents from your local `.github/workflows/ci.yml`
+5. Commit directly to `main`
+6. Repeat for `.github/workflows/deploy.yml`
+
+### Option B: Via Personal Access Token (PAT)
+If you have a GitHub PAT with `workflow` scope:
+```bash
+cd /home/ubuntu/evidentia_app
+git remote set-url origin https://YOUR_PAT@github.com/aslamlogic/evidentia-app.git
+git add .github/workflows/
+git commit -m "Add CI/CD workflows"
+git push origin main
+```
+
+### Option C: Grant Workflows Permission
+Go to https://github.com/apps/abacusai/installations/select_target and grant the `workflows` permission to the Abacus GitHub App for the evidentia-app repository.
+
+## GitHub Secrets Setup
+
+Add this secret in your repository: **Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret | Value |
+|---|---|
+| `ABACUS_API_KEY` | Your Abacus.AI API key (find at https://abacus.ai) |
+
 ## Current Limitations
 
 > **Important**: Abacus AI Deep Agent Apps currently do not support direct GitHub webhook-based auto-deployment. The deployment process requires syncing code through the DeepAgent environment.
