@@ -329,7 +329,6 @@ export default function DocumentsPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
@@ -348,5 +347,6 @@ export default function DocumentsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
   );
 }
