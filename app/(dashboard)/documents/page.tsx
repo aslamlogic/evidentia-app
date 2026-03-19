@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { addNotification } from '@/components/notification-centre';
 import { Upload, FileText, Search, Trash2, Loader2, File, HardDrive, FolderOpen, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,7 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [matters, setMatters] = useState<Matter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [selectedMatterId, setSelectedMatterId] = useState('');
@@ -59,7 +61,7 @@ export default function DocumentsPage() {
         rejected++;
       }
     }
-    if (rejected > 0) toast.error(`${rejected} file(s) skipped — only PDF and DOCX are supported`);
+    if (rejected > 0) addNotification(`${rejected} file(s) skipped — only PDF and DOCX are supported`, 'error');
     if (valid.length > 0) setUploadFiles(prev => [...prev, ...valid]);
   };
 
@@ -68,8 +70,8 @@ export default function DocumentsPage() {
   };
 
   const handleUpload = async () => {
-    if (uploadFiles.length === 0) { toast.error('Select at least one file'); return; }
-    if (!selectedMatterId) { toast.error('Select a matter'); return; }
+    if (uploadFiles.length === 0) { addNotification('Select at least one file', 'error'); return; }
+    if (!selectedMatterId) { addNotification('Select a matter', 'error'); return; }
     setUploading(true);
 
     let successCount = 0;
@@ -96,11 +98,11 @@ export default function DocumentsPage() {
     setUploading(false);
 
     if (successCount > 0) {
-      toast.success(`${successCount} document${successCount > 1 ? 's' : ''} uploaded successfully`);
+      addNotification(`${successCount} document${successCount > 1 ? 's' : ''} uploaded successfully`, 'success');
       fetchData();
     }
     if (failCount > 0) {
-      toast.error(`${failCount} document${failCount > 1 ? 's' : ''} failed to upload`);
+      addNotification(`${failCount} document${failCount > 1 ? 's' : ''} failed to upload`, 'error');
     }
 
     // Auto-close if all succeeded
@@ -118,10 +120,21 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this document?')) return;
-    try { await documentsApi.delete(id); toast.success('Deleted'); fetchData(); }
-    catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Delete failed'); }
+  const handleDelete = (id: string) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget;
+    setDeleteTarget(null);
+    try {
+      await documentsApi.delete(id);
+      addNotification('Document deleted', 'success');
+      fetchData();
+    } catch (err: unknown) {
+      addNotification(err instanceof Error ? err.message : 'Delete failed', 'error');
+    }
   };
 
   const filtered = (documents ?? []).filter(d => {
@@ -317,5 +330,23 @@ export default function DocumentsPage() {
         </DialogContent>
       </Dialog>
     </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+              Delete Document
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
   );
 }
