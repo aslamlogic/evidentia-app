@@ -383,6 +383,18 @@ export const intakesApi = {
     }
     return response.json() as Promise<import('./types').IntakeForm>;
   },
+  unlock: async (id: string) => {
+    const token = getAuthToken();
+    const response = await fetch(`/api/intakes/${id}`, {
+      method: 'PATCH',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new ApiError(error.error || 'Failed to unlock intake', response.status);
+    }
+    return response.json() as Promise<import('./types').IntakeForm>;
+  },
 };
 
 // ============ Users API (direct routes) ============
