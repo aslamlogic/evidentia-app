@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { addNotification } from '@/components/notification-centre';
 import { Plus, ClipboardList, Lock, Unlock, Loader2, Eye, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -35,16 +35,16 @@ export default function IntakesPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCreate = async () => {
-    if (!form.title.trim()) { toast.error('Title is required'); return; }
+    if (!form.title.trim()) { addNotification('Title is required', 'error'); return; }
     setCreating(true);
     try {
       await intakesApi.create({ title: form.title, matterId: form.matterId || undefined } as Partial<IntakeForm>);
-      toast.success('Intake form created');
+      addNotification('Intake form created', 'success');
       setShowCreate(false);
       setForm({ title: '', matterId: '' });
       fetchData();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create');
+      addNotification(err instanceof Error ? err.message : 'Failed to create', 'error');
     } finally { setCreating(false); }
   };
 
@@ -52,10 +52,10 @@ export default function IntakesPage() {
     setLocking(id);
     try {
       await intakesApi.lock(id);
-      toast.success('Intake locked');
+      addNotification('Intake locked successfully', 'success');
       fetchData();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Lock failed');
+      addNotification(err instanceof Error ? err.message : 'Lock failed', 'error');
     } finally { setLocking(null); }
   };
 
@@ -64,7 +64,7 @@ export default function IntakesPage() {
       const data = await intakesApi.get(id);
       setViewIntake(data);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to load');
+      addNotification(err instanceof Error ? err.message : 'Failed to load', 'error');
     }
   };
 
