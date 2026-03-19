@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 71% 25%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 43 74% 49%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 217 71% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 217 71% 25%;
+    --radius: 0.5rem;
+    --chart-1: 217 71% 25%;
+    --chart-2: 43 74% 49%;
+    --chart-3: 170 55% 40%;
+    --chart-4: 280 55% 50%;
+    --chart-5: 340 65% 50%;
+    --success: 152 60% 38%;
+    --warning: 38 92% 50%;
+    --info: 210 100% 50%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 95%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 95%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 95%;
+    --primary: 213 60% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 43 74% 49%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 217 33% 18%;
+    --accent-foreground: 210 40% 95%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 213 60% 50%;
+    --success: 152 55% 45%;
+    --warning: 38 90% 55%;
+    --info: 210 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  [data-hydration-error] {
+    display: none !important;
+  }
+}
+
+/* ========= Typography ========= */
+@layer components {
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-foreground;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+  .section-title {
+    @apply text-base font-semibold text-foreground;
+  }
+}
+
+/* ========= Card system ========= */
+@layer components {
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  .card-interactive {
+    @apply card-elevated cursor-pointer hover:border-primary/20;
+  }
+  .card-flat {
+    @apply bg-muted/40 rounded-lg border-0;
+  }
+}
+
+/* ========= Status pills ========= */
+@layer components {
+  .status-open { @apply bg-emerald-50 text-emerald-700 border-emerald-200; }
+  .status-closed { @apply bg-slate-100 text-slate-600 border-slate-200; }
+  .status-archived { @apply bg-amber-50 text-amber-700 border-amber-200; }
+  .status-succeeded { @apply bg-emerald-50 text-emerald-700 border-emerald-200; }
+  .status-failed { @apply bg-red-50 text-red-700 border-red-200; }
+  .status-processing { @apply bg-amber-50 text-amber-700 border-amber-200; }
+  .status-pending { @apply bg-slate-50 text-slate-600 border-slate-200; }
+}
+
+/* ========= Tier colors ========= */
+@layer components {
+  .tier-basic { @apply bg-slate-100 text-slate-700 border-slate-300; }
+  .tier-silver { @apply bg-slate-200 text-slate-800 border-slate-400; }
+  .tier-gold { @apply bg-amber-100 text-amber-800 border-amber-400; }
+  .tier-platinum { @apply bg-purple-100 text-purple-800 border-purple-400; }
+}
+
+/* ========= Confidence bar ========= */
+.confidence-bar {
+  @apply h-1.5 rounded-full overflow-hidden bg-muted;
+}
+.confidence-bar-fill {
+  @apply h-full rounded-full transition-all duration-500;
+}
+
+/* ========= Legal document styling ========= */
+.legal-output h1 { @apply text-2xl font-bold mb-4 text-primary; }
+.legal-output h2 { @apply text-xl font-semibold mb-3 mt-6 text-primary/90; }
+.legal-output h3 { @apply text-lg font-semibold mb-2 mt-4; }
+.legal-output p { @apply mb-3 leading-relaxed; }
+.legal-output ul { @apply list-disc pl-6 mb-3 space-y-1; }
+.legal-output ol { @apply list-decimal pl-6 mb-3 space-y-1; }
+.legal-output blockquote { @apply border-l-4 border-primary/30 pl-4 italic my-4 text-muted-foreground; }
+/* Legal tables — handle complex multi-column matrices */
+.legal-output .table-wrapper {
+  @apply w-full overflow-x-auto mb-6 rounded-lg border border-border;
+  -webkit-overflow-scrolling: touch;
+}
+.legal-output table {
+  @apply w-full border-collapse mb-6;
+  min-width: 800px;
+  table-layout: auto;
+}
+.legal-output th {
+  @apply border border-border bg-muted px-4 py-3 text-left font-semibold text-sm;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.legal-output td {
+  @apply border border-border px-4 py-3 text-sm leading-relaxed;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  min-width: 120px;
+  max-width: 350px;
+}
+.legal-output tr:nth-child(even) {
+  @apply bg-muted/30;
+}
+.legal-output tr:hover {
+  @apply bg-muted/50;
+}
+/* First column (Cause of Action) — wider, bold */
+.legal-output td:first-child {
+  @apply font-medium;
+  min-width: 180px;
+}
+/* Nested lists inside table cells */
+.legal-output td ul,
+.legal-output td ol {
+  @apply pl-4 mb-0 space-y-0.5;
+}
+.legal-output td p {
+  @apply mb-1;
+}
+.legal-output td p:last-child {
+  @apply mb-0;
+}
+.legal-output code { @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono; }
+.legal-output pre { @apply bg-muted p-4 rounded-lg mb-4 overflow-x-auto; }
+.legal-output hr { @apply my-6 border-border; }
+.legal-output strong { @apply font-semibold text-foreground; }
+.legal-output a { @apply text-primary underline; }
+
+/* ========= Animations ========= */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.7; }
+  100% { transform: scale(0.95); opacity: 1; }
+}
+.animate-pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--primary)/0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+/* ========= Print styles ========= */
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white; }
+}
+
+/* ========= Scrollbar ========= */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { @apply bg-transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/30; }

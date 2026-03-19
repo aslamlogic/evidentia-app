@@ -1,0 +1,625 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/evidentia_frontend/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// EVIDENTIA LEGAL INTELLIGENCE — FORMAL TECHNICAL SPEC v1.2 SCHEMA
+// =============================================================================
+// Implements all 8 core entities from the Formal Technical Specification:
+// Matter, Invocation, LegalArtefact, Source, EvidenceLink, ArtefactFragment,
+// KnowledgeUnit, AdversarialKnowledgeUnit
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  user
+  admin
+  reviewer
+  superuser
+}
+
+enum MatterStatus {
+  open
+  in_progress
+  closed
+  archived
+}
+
+enum TierLevel {
+  Basic
+  Silver
+  Gold
+  Platinum
+}
+
+enum SubscriptionTier {
+  Basic
+  Silver
+  Gold
+  Platinum
+}
+
+enum TaskType {
+  chronology
+  case_summary
+  laws_affected
+  breaches_map
+  issues_list
+  defenses_prosecution
+  lawyer_case_pack
+  scoping_analysis
+  evidence_schedule
+  cause_of_action_matrix
+  adversarial_analysis
+}
+
+enum TaskStatus {
+  pending
+  queued
+  processing
+  succeeded
+  failed
+  canceled
+}
+
+enum DocumentStatus {
+  pending
+  processing
+  processed
+  failed
+}
+
+enum SourceType {
+  Statute
+  Case
+  Regulation
+  Secondary
+  Other
+}
+
+enum KnowledgeUnitModality {
+  Empirical
+  Normative
+}
+
+enum AdversarialFunctionType {
+  rebut
+  distinguish
+  narrow
+  reinterpret
+  alternative_authority
+  factual_counter
+}
+
+enum FragmentType {
+  Section
+  Subsection
+  Paragraph
+  Sentence
+}
+
+enum InvocationType {
+  generation
+  regeneration
+  edit
+  review_approve
+  review_reject
+  export
+}
+
+// ---------------------------------------------------------------------------
+// CORE USER & ORGANIZATION ENTITIES
+// ---------------------------------------------------------------------------
+
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  firstName        String?
+  lastName         String?
+  role             UserRole         @default(user)
+  subscriptionTier SubscriptionTier @default(Basic)
+  isActive         Boolean          @default(true)
+  lastLoginAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  matters          Matter[]
+  documents        Document[]
+  tasks            AITask[]
+  outputs          AIOutput[]
+  invocations      Invocation[]
+  intakeForms      IntakeForm[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: Matter (Spec 4.1)
+// Represents a single legal problem instance submitted for processing.
+// ---------------------------------------------------------------------------
+
+model Matter {
+  id                      String       @id @default(uuid())
+  title                   String
+  description             String?
+  practiceArea            String       @default("general")       // Legal domain
+  jurisdiction            String       @default("England and Wales")
+  matterType              String       @default("civil")         // civil, criminal, family, employment
+  status                  MatterStatus @default(open)
+  structuredInputPayload  Json?        // Validated intake data (conforms to intake schema)
+  clientName              String?
+  clientEmail             String?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+
+  // FK to User
+  userId                  String
+  user                    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  documents               Document[]
+  tasks                   AITask[]
+  intakeForms             IntakeForm[]
+  invocations             Invocation[]
+  legalArtefacts          LegalArtefact[]
+  knowledgeUnits          KnowledgeUnit[]
+
+  @@map("matters")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: Invocation (Spec 4.2)
+// Represents a single controlled execution event with a Large Language Model.
+// ---------------------------------------------------------------------------
+
+model Invocation {
+  id                    String         @id @default(uuid())
+  matterId              String
+  matter                Matter         @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  
+  // LLM Provider details
+  llmProviderName       String         // Provider name (e.g., "routellm_abacus", "ollama")
+  modelIdentifier       String         // Exact model name used
+  modelRequested        String?        // Originally requested model
+  temperatureValue      Float          @default(0.1)  // Inference control (0.0-1.0)
+  
+  // Protocol enforcement
+  protocolVersion       String         @default("SMR v5.6 + KUP v1.5") // Applied protocol version
+  
+  // Integrity hashes (SHA-256)
+  requestPayloadHash    String?        // Request integrity hash
+  responseHash          String?        // Response integrity hash
+  
+  // Execution metadata
+  invocationType        InvocationType @default(generation)
+  inputTokens           Int            @default(0)
+  outputTokens          Int            @default(0)
+  generationTimeMs      Int            @default(0)
+  tier                  String?        // Model tier used (tier_1_premium, tier_2_standard, etc.)
+  
+  // Complexity scoring (from Recursive Complexity Model)
+  complexityScore       Float?         // Calculated complexity score
+  routingDecision       String?        // Why this model was chosen
+  
+  invocationTimestamp   DateTime       @default(now())
+  
+  // FK to User who triggered
+  userId                String?
+  user                  User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // FK to Task if applicable
+  taskId                String?
+  task                  AITask?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  
+  // Relations
+  sources               Source[]
+  legalArtefacts        LegalArtefact[]
+
+  @@map("invocations")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: LegalArtefact (Spec 4.3)
+// Represents the final structured legal output at a defined tier.
+// ---------------------------------------------------------------------------
+
+model LegalArtefact {
+  id                    String          @id @default(uuid())
+  matterId              String
+  matter                Matter          @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  
+  // Tier level (Basic/Silver/Gold/Platinum)
+  tierLevel             TierLevel       @default(Basic)
+  
+  // Generated content
+  generatedText         String          @db.Text  // Full structured output
+  contentMarkdown       String?         @db.Text  // Markdown version
+  sectionsJson          Json?           // Structured section breakdown
+  
+  // Metadata
+  artefactType          String?         // Type identifier (e.g., "scoping_analysis", "drafting_pack")
+  version               Int             @default(1)
+  confidence            Float?          // AI confidence score
+  
+  generatedTimestamp    DateTime        @default(now())
+  
+  // FK to Invocation that generated this
+  invocationId          String?
+  invocation            Invocation?     @relation(fields: [invocationId], references: [id], onDelete: SetNull)
+  
+  // Relations
+  evidenceLinks         EvidenceLink[]
+  fragments             ArtefactFragment[]
+
+  @@map("legal_artefacts")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: Source (Spec 4.4)
+// Represents a cited legal authority extracted from an LLM response.
+// ---------------------------------------------------------------------------
+
+model Source {
+  id                    String       @id @default(uuid())
+  invocationId          String
+  invocation            Invocation   @relation(fields: [invocationId], references: [id], onDelete: Cascade)
+  
+  // Citation details
+  citationText          String       @db.Text  // Exact citation as returned
+  sourceType            SourceType   @default(Other)
+  referencedSection     String?      // Section or clause (nullable)
+  
+  // Additional metadata
+  jurisdiction          String?      // Jurisdiction of the source
+  yearPublished         Int?         // Year if applicable
+  verified              Boolean      @default(false) // Whether citation has been verified
+  verificationNotes     String?
+  
+  extractedTimestamp    DateTime     @default(now())
+  
+  // Relations
+  evidenceLinks         EvidenceLink[]
+
+  @@map("sources")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: EvidenceLink (Spec 4.5)
+// Associative entity resolving many-to-many between LegalArtefact and Source.
+// Enables sentence-level traceability.
+// ---------------------------------------------------------------------------
+
+model EvidenceLink {
+  id                        String         @id @default(uuid())
+  artefactId                String
+  artefact                  LegalArtefact  @relation(fields: [artefactId], references: [id], onDelete: Cascade)
+  
+  sourceId                  String
+  source                    Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  
+  // Fragment reference for sentence-level traceability
+  fragmentIdentifier        String?        // Stable segment reference
+  fragmentTextHash          String?        // SHA-256 fragment integrity hash
+  
+  // Link metadata
+  relevanceScore            Float?         // How relevant the source is to this fragment
+  linkageType               String?        // Type of linkage (supports, contradicts, etc.)
+  
+  linkageCreatedTimestamp   DateTime       @default(now())
+
+  @@unique([artefactId, sourceId, fragmentIdentifier])
+  @@map("evidence_links")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: ArtefactFragment (Spec 4.6)
+// Structured segment of a LegalArtefact for traceable linkage.
+// ---------------------------------------------------------------------------
+
+model ArtefactFragment {
+  id                    String          @id @default(uuid())
+  artefactId            String
+  artefact              LegalArtefact   @relation(fields: [artefactId], references: [id], onDelete: Cascade)
+  
+  // Fragment structure
+  fragmentType          FragmentType    @default(Paragraph)
+  fragmentOrderIndex    Int             // Sequential position within artefact
+  fragmentText          String          @db.Text  // Segment content
+  fragmentTextHash      String?         // SHA-256 integrity hash
+  
+  // Metadata
+  sectionName           String?         // Parent section name
+  headingLevel          Int?            // H1, H2, H3, etc.
+  
+  createdAt             DateTime        @default(now())
+
+  @@map("artefact_fragments")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: KnowledgeUnit (Spec 4.7)
+// Discrete, self-contained statement of knowledge extracted under KUP v1.5.
+// ---------------------------------------------------------------------------
+
+model KnowledgeUnit {
+  id                        String                 @id @default(uuid())
+  matterId                  String
+  matter                    Matter                 @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  
+  // KU Protocol v1.5 required fields
+  modality                  KnowledgeUnitModality  // Empirical or Normative
+  quotationText             String                 @db.Text  // Verbatim excerpt
+  analyticalParaphrase      String                 @db.Text  // Condensed restatement
+  interpretiveCommentary    String                 @db.Text  // Signposted interpretation
+  
+  // Additional metadata
+  sourceReference           String?                // Where this KU was extracted from
+  confidence                Float?                 // Extraction confidence
+  tierExtracted             TierLevel?             // Which tier this was extracted at
+  orderIndex                Int                    @default(0)  // Order within the matter
+  
+  createdAt                 DateTime               @default(now())
+  
+  // Relations (for Adversarial KUs)
+  adversarialKUsTargeting   AdversarialKnowledgeUnit[] @relation("TargetKU")
+  adversarialKUsBase        AdversarialKnowledgeUnit[] @relation("BaseKU")
+
+  @@map("knowledge_units")
+}
+
+// ---------------------------------------------------------------------------
+// ENTITY: AdversarialKnowledgeUnit (Spec 4.8)
+// Knowledge Unit constructed to support opposing-party argument (Tier 4).
+// ---------------------------------------------------------------------------
+
+model AdversarialKnowledgeUnit {
+  id                    String                   @id @default(uuid())
+  
+  // Base KU from which this adversarial KU is derived
+  kuId                  String
+  baseKU                KnowledgeUnit            @relation("BaseKU", fields: [kuId], references: [id], onDelete: Cascade)
+  
+  // Target KU being rebutted or narrowed
+  targetKuId            String
+  targetKU              KnowledgeUnit            @relation("TargetKU", fields: [targetKuId], references: [id], onDelete: Cascade)
+  
+  // Adversarial function type (from Tier 4 spec)
+  functionType          AdversarialFunctionType
+  
+  // Adversarial strength rating (1-4)
+  strengthRating        Int                      @default(2)  // Range 1-4
+  
+  // Content
+  adversarialArgument   String                   @db.Text  // The counter-argument
+  additionalSources     Json?                    // Additional legal sources supporting adversarial argument
+  reinterpretation      String?                  @db.Text  // Re-interpretation of actions/laws
+  
+  createdAt             DateTime                 @default(now())
+
+  @@map("adversarial_knowledge_units")
+}
+
+// ---------------------------------------------------------------------------
+// EXISTING ENTITIES (ENHANCED)
+// ---------------------------------------------------------------------------
+
+model Document {
+  id                    String         @id @default(uuid())
+  filename              String
+  originalName          String
+  mimeType              String
+  fileSize              Int
+  storagePath           String
+  status                DocumentStatus @default(pending)
+  
+  // Integrity (Spec requirement)
+  contentHash           String?        // SHA-256 of file content
+  
+  // Extraction results
+  extractedText         String?        @db.Text
+  extractedFacts        Json?
+  charCount             Int            @default(0)
+  
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  // Relations
+  matterId              String
+  matter                Matter         @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  taskDocuments         TaskDocument[]
+
+  @@map("documents")
+}
+
+model AITask {
+  id                    String       @id @default(uuid())
+  taskType              TaskType
+  status                TaskStatus   @default(pending)
+  
+  // Tier snapshot at creation (audit-grade enforcement per spec)
+  tierSnapshotJson      Json?        // Full tier policy snapshot
+  templateSnapshotJson  Json?        // Template config snapshot
+  
+  instructions          String?
+  errorMessage          String?
+  processingTimeMs      Int?
+  
+  // Protocol compliance tracking
+  smrVersion            String       @default("v5.6")
+  kupVersion            String       @default("v1.5")
+  protocolCompliant     Boolean      @default(false)
+  
+  createdAt             DateTime     @default(now())
+  startedAt             DateTime?
+  completedAt           DateTime?
+
+  // Relations
+  matterId              String
+  matter                Matter       @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  outputs               AIOutput[]
+  taskDocuments         TaskDocument[]
+  invocations           Invocation[]
+
+  @@map("ai_tasks")
+}
+
+model AIOutput {
+  id                    String     @id @default(uuid())
+  version               Int        @default(1)
+  contentMarkdown       String     @db.Text
+  sectionsJson          Json?
+  citationsJson         Json?
+  
+  // Compliance & confidence
+  confidence            Float?
+  smrCompliant          Boolean    @default(false)
+  lwpCompliant          Boolean    @default(false)
+  complianceDetails     Json?
+  
+  // AI metadata
+  aiProvider            String?
+  aiModel               String?
+  tokensUsed            Int?
+  generationTimeMs      Int?
+  
+  // Export URLs
+  exportPdfUrl          String?
+  exportDocxUrl         String?
+  
+  createdAt             DateTime   @default(now())
+
+  // Relations
+  taskId                String
+  task                  AITask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId                String?
+  user                  User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("ai_outputs")
+}
+
+model TaskDocument {
+  id                    String     @id @default(uuid())
+  taskId                String
+  task                  AITask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  documentId            String
+  document              Document   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@unique([taskId, documentId])
+  @@map("task_documents")
+}
+
+model IntakeForm {
+  id                    String       @id @default(uuid())
+  title                 String
+  answersJson           Json?        // Structured form responses
+  completenessScore     Float        @default(0)  // 0-100
+  locked                Boolean      @default(false)
+  lockedAt              DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  // Relations
+  matterId              String?
+  matter                Matter?      @relation(fields: [matterId], references: [id], onDelete: SetNull)
+  userId                String
+  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fields                IntakeField[]
+
+  @@map("intake_forms")
+}
+
+model IntakeField {
+  id                    String     @id @default(uuid())
+  fieldName             String
+  fieldType             String     // text, textarea, select, date, etc.
+  fieldValue            String?    @db.Text
+  required              Boolean    @default(false)
+  orderIndex            Int        @default(0)
+  createdAt             DateTime   @default(now())
+
+  intakeFormId          String
+  intakeForm            IntakeForm @relation(fields: [intakeFormId], references: [id], onDelete: Cascade)
+
+  @@map("intake_fields")
+}
+
+// ---------------------------------------------------------------------------
+// AUDIT LOG (Spec requirement: "No silent skips. Ever.")
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id                    String     @id @default(uuid())
+  action                String     // e.g., 'matter.created', 'task.created', 'invocation.logged'
+  objectType            String     // e.g., 'matter', 'task', 'output', 'invocation'
+  objectId              String?
+  metadataJson          Json?
+  ipAddress             String?
+  userAgent             String?
+  timestamp             DateTime   @default(now())
+
+  // FK to User
+  userId                String?
+  user                  User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// COMPLEXITY SCORING (Recursive Complexity Model - Spec Section 9)
+// ---------------------------------------------------------------------------
+
+model ComplexityScore {
+  id                        String     @id @default(uuid())
+  matterId                  String     @unique
+  
+  // Variable inputs for complexity calculation
+  documentCount             Int        @default(0)    // D
+  partyCount                Int        @default(0)    // P
+  statuteCount              Int        @default(0)    // S
+  jurisdictionalLayers      Int        @default(1)    // J
+  temporalSpanMonths        Int        @default(0)    // T
+  
+  // Knowledge Unit metrics
+  empiricalKuCount          Int        @default(0)    // E_ku
+  normativeKuCount          Int        @default(0)    // N_ku
+  interactionDensity        Float      @default(0)    // I (KU interactions)
+  frictionCoefficient       Float      @default(1.0)  // F (tier progression friction)
+  
+  // Calculated scores per tier
+  tier1Score                Float?     // Score after Basic tier
+  tier2Score                Float?     // Score after Silver tier
+  tier3Score                Float?     // Score after Gold tier
+  tier4Score                Float?     // Score after Platinum tier
+  
+  // Final complexity score
+  finalComplexityScore      Float?     // C = f(D, P, S, J, T, E_ku, N_ku, I, F)
+  
+  // Routing decision
+  recommendedTier           TierLevel  @default(Basic)
+  routingReason             String?
+  
+  calculatedAt              DateTime   @default(now())
+  updatedAt                 DateTime   @updatedAt
+
+  @@map("complexity_scores")
+}
