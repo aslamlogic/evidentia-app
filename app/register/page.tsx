@@ -49,9 +49,10 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-background">
       <div className="w-full max-w-md">
-        <div className="flex items-center gap-2 mb-8 justify-center">
-          <Scale className="w-8 h-8 text-primary" />
-          <span className="text-2xl font-bold">Evidentia</span>
+        <div className="flex flex-col items-center mb-8">
+          <Scale className="w-8 h-8 text-primary mb-1" />
+          <span className="text-lg font-bold tracking-tight">Evidentia</span>
+          <span className="text-xs text-muted-foreground">Legal Reasoning</span>
         </div>
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-4">
