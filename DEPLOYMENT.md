@@ -162,3 +162,6 @@ Add this secret in your repository: **Settings → Secrets and variables → Act
 - **Abacus Console**: Apps Management Console → "2 - Evidentia Legal AI"
 
 <!-- Railway redeploy trigger: 2026-03-19T17:35 -->
+
+
+<!-- force rebuild: 2026-03-21T17:55:35.281695Z -->
