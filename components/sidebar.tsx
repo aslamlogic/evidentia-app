@@ -16,11 +16,11 @@ import { TIER_FEATURES } from '@/lib/types';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, group: null },
-  { href: '/matters', label: 'Matters', icon: FolderOpen, group: 'Case Setup' },
-  { href: '/intakes', label: 'Intake', icon: ClipboardList, group: 'Case Setup' },
-  { href: '/documents', label: 'Documents', icon: FileText, group: 'Case Setup' },
-  { href: '/tasks', label: 'Analysis', icon: Brain, group: 'Work' },
-  { href: '/outputs', label: 'Outputs', icon: FileOutput, group: 'Results' },
+  { href: '/matters', label: 'Matters', icon: FolderOpen, group: null },
+  { href: '/documents', label: 'Documents', icon: FileText, group: 'Input' },
+  { href: '/intakes', label: 'Intake Form', icon: ClipboardList, group: 'Input' },
+  { href: '/tasks', label: 'AI Tasks', icon: Brain, group: null },
+  { href: '/outputs', label: 'Outputs', icon: FileOutput, group: null },
 ];
 
 const adminItems = [
@@ -124,15 +124,12 @@ export function Sidebar() {
         )}
       </nav>
 
-      {/* Tier indicator */}
+      {/* Tier badge — bottom right, Nielsen H1: visibility of system status */}
       {!collapsed && (
-        <div className="px-3 pb-2">
-          <div className={cn('rounded-lg px-3 py-2.5 flex items-center gap-2.5', tierStyle.bg)}>
-            <Zap className={cn('w-4 h-4', tierStyle.icon)} />
-            <div className="flex-1 min-w-0">
-              <p className={cn('text-xs font-semibold', tierStyle.text)}>{tier} Plan</p>
-              <p className="text-[10px] text-muted-foreground">{TIER_FEATURES[tier]?.tasks?.length ?? 0} task types</p>
-            </div>
+        <div className="px-3 pb-2 flex justify-end">
+          <div className={cn('rounded-md px-2.5 py-1.5 flex items-center gap-1.5', tierStyle.bg)}>
+            <Zap className={cn('w-3.5 h-3.5', tierStyle.icon)} />
+            <p className={cn('text-xs font-semibold', tierStyle.text)}>{tier}</p>
           </div>
         </div>
       )}
