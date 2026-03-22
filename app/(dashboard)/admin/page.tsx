@@ -60,7 +60,7 @@ export default function AdminPage() {
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
       case 'admin': case 'superuser': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'reviewer': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'user_admin': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
       default: return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
     }
   };
@@ -118,7 +118,7 @@ export default function AdminPage() {
                       <SelectTrigger className="w-[110px] h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="reviewer">Reviewer</SelectItem>
+                        <SelectItem value="user_admin">User Admin</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
