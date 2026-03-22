@@ -46,35 +46,35 @@ async function main() {
       isActive: true,
     },
   });
-  console.log('✓ Admin user created:', admin.email);
+  console.log('\u2713 Admin user created:', admin.email);
 
-  // Create reviewer user
-  const reviewerPassword = await bcrypt.hash('reviewer123', 10);
-  const reviewer = await prisma.user.upsert({
-    where: { email: 'reviewer@evidentia.legal' },
+  // Create demo user_admin (firm-level admin for demo organisation)
+  const userAdminPassword = await bcrypt.hash('useradmin123', 10);
+  const userAdmin = await prisma.user.upsert({
+    where: { email: 'firmadmin@evidentia.legal' },
     update: {
-      password: reviewerPassword,
-      role: 'reviewer',
+      password: userAdminPassword,
+      role: 'user_admin',
       subscriptionTier: 'Gold',
     },
     create: {
-      email: 'reviewer@evidentia.legal',
-      password: reviewerPassword,
-      firstName: 'Legal',
-      lastName: 'Reviewer',
-      role: 'reviewer',
+      email: 'firmadmin@evidentia.legal',
+      password: userAdminPassword,
+      firstName: 'Firm',
+      lastName: 'Admin',
+      role: 'user_admin',
       subscriptionTier: 'Gold',
       isActive: true,
     },
   });
-  console.log('✓ Reviewer user created:', reviewer.email);
+  console.log('\u2713 User Admin created:', userAdmin.email);
 
   console.log('\n=== Seeding Complete ===');
   console.log('\nTest Accounts:');
-  console.log('─────────────────────────────────────────────');
-  console.log('Admin:    admin@evidentia.legal / admin123');
-  console.log('Reviewer: reviewer@evidentia.legal / reviewer123');
-  console.log('─────────────────────────────────────────────');
+  console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+  console.log('Admin:      admin@evidentia.legal / admin123');
+  console.log('User Admin: firmadmin@evidentia.legal / useradmin123');
+  console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
 }
 
 main()
