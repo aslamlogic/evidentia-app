@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { getUserFromToken, isAdmin } from '@/lib/api-utils';
 
 // PATCH /api/admin/users/[id] — update role and/or subscriptionTier
 export async function PATCH(
@@ -10,14 +10,8 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Verify caller is admin or superuser
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.slice(7);
-    const payload = verifyToken(token);
-    if (!payload || !['admin', 'superuser'].includes(payload.role)) {
+    const user = getUserFromToken(req);
+    if (!isAdmin(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -33,7 +27,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
 
-    const user = await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: params.id },
       data: updateData,
       select: {
@@ -49,7 +43,7 @@ export async function PATCH(
       }
     });
 
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({ success: true, user: updated });
   } catch (error) {
     console.error('Admin user update error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -62,17 +56,12 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.slice(7);
-    const payload = verifyToken(token);
-    if (!payload || !['admin', 'superuser'].includes(payload.role)) {
+    const user = getUserFromToken(req);
+    if (!isAdmin(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const user = await prisma.user.findUnique({
+    const found = await prisma.user.findUnique({
       where: { id: params.id },
       select: {
         id: true,
@@ -87,8 +76,8 @@ export async function GET(
       }
     });
 
-    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    return NextResponse.json(user);
+    if (!found) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    return NextResponse.json(found);
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
