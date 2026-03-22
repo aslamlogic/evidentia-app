@@ -6,7 +6,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'user' | 'admin' | 'reviewer' | 'superuser';
+  role: 'user' | 'user_admin' | 'admin' | 'superuser';
   subscriptionTier: 'Basic' | 'Silver' | 'Gold' | 'Platinum';
   organizationId?: string;
   createdAt: string;
