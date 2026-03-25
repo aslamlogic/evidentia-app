@@ -45,14 +45,14 @@ export default function DocumentsPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (searchParams?.get('upload') === 'true') setShowUpload(true); }, [searchParams]);
 
-  const ALLOWED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const ALLOWED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
 
   const handleFilesSelect = (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     const valid: FileUploadItem[] = [];
     let rejected = 0;
     for (const file of fileArray) {
-      if (ALLOWED_TYPES.includes(file.type) || file.name.toLowerCase().endsWith('.pdf') || file.name.toLowerCase().endsWith('.docx')) {
+      if (ALLOWED_TYPES.includes(file.type) || file.name.toLowerCase().endsWith('.pdf') || file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.txt')) {
         // Avoid duplicates
         if (!uploadFiles.some(uf => uf.file.name === file.name && uf.file.size === file.size)) {
           valid.push({ file, status: 'queued' });
@@ -61,7 +61,7 @@ export default function DocumentsPage() {
         rejected++;
       }
     }
-    if (rejected > 0) addNotification(`${rejected} file(s) skipped — only PDF and DOCX are supported`, 'error');
+    if (rejected > 0) addNotification(`${rejected} file(s) skipped — only PDF, DOCX and TXT are supported`, 'error');
     if (valid.length > 0) setUploadFiles(prev => [...prev, ...valid]);
   };
 
@@ -231,7 +231,7 @@ export default function DocumentsPage() {
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
             <DialogTitle>Upload Documents</DialogTitle>
-            <DialogDescription>Upload multiple PDF or DOCX files for AI analysis</DialogDescription>
+            <DialogDescription>Upload multiple PDF, DOCX or TXT files for AI analysis</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-2">
@@ -259,12 +259,12 @@ export default function DocumentsPage() {
             >
               <Upload className="w-7 h-7 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Drag & drop files or click to browse</p>
-              <p className="text-xs text-muted-foreground mt-1">PDF, DOCX · Multiple files supported</p>
+              <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, TXT · Multiple files supported</p>
               <input
                 id="fileInput"
                 type="file"
                 className="hidden"
-                accept=".pdf,.docx"
+                accept=".pdf,.docx,.txt"
                 multiple
                 onChange={e => {
                   if (e.target.files && e.target.files.length > 0) {
