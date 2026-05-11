@@ -132,5 +132,9 @@
     "> 0.5%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "overrides": {
+    "@typescript-eslint/parser": "7.0.0",
+    "@typescript-eslint/eslint-plugin": "7.0.0"
+  }
 }
