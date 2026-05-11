@@ -2,7 +2,7 @@ services:
   - type: web
     name: evidentia-app
     buildCommand: "cd app && npm install --legacy-peer-deps --force && npm run build"
-    staticPublishPath: "./app/out"
+    startCommand: "npx serve app/out"
     envVars:
       - key: NODE_VERSION
         value: "20.10.0"
