@@ -1,5 +1,5 @@
 services:
-  - type: static
+  - type: web
     name: evidentia-app
     buildCommand: "cd app && npm install --legacy-peer-deps --force && npm run build"
     staticPublishPath: "./app/out"
