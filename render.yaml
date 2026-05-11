@@ -1,7 +1,7 @@
 services:
   - type: web
     name: evidentia-app
-    runtime: "nodeJS"
+    runtime: nodejs
     buildCommand: "cd app && npm install --legacy-peer-deps --force && npm run build"
     startCommand: "npx serve -s app/out"
     envVars:
