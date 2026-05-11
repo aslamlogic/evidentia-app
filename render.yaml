@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: static
     name: evidentia-app
     env: static
     buildCommand: "npm install --legacy-peer-deps --force && next build"
