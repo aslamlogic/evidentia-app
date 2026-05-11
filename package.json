@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "prisma db push --accept-data-loss || true && next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
-    "migrate": "prisma migrate deploy"
+    "migrate": "prisma migrate deploy",
+    "prebuild": "echo \"Clearing build artifacts...\" && rm -rf .next out"
   },
   "prisma": {
     "seed": "tsx --require dotenv/config scripts/safe-seed.ts"
@@ -136,5 +136,8 @@
   "overrides": {
     "@typescript-eslint/parser": "7.0.0",
     "@typescript-eslint/eslint-plugin": "7.0.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
