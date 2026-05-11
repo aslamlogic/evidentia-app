@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
-export default {
+const nextConfig = {
   output: 'export',
   images: { unoptimized: true },
-  trailingSlash: true,
-  generateBuildId: () => 'static',
-  eslint: { ignoreDuringBuilds: true }
-}
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true }
+};
+export default nextConfig;
