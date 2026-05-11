@@ -1,15 +1,14 @@
 services:
   - type: static
     name: evidentia-app
-    env: static
-    buildCommand: "npm install --legacy-peer-deps --force && next build"
-    staticPublishPath: "./out"
+    buildCommand: "cd app && npm install --legacy-peer-deps --force && npm run build"
+    staticPublishPath: "./app/out"
     envVars:
-      - key: CI
-        value: "false"
       - key: NODE_VERSION
         value: "20.10.0"
-      - key: NPM_CONFIG_LEGACY_PEER_DEPS
-        value: "true"
+      - key: CI
+        value: "false"
       - key: PRISMA_SKIP_POSTINSTALL_GENERATE
         value: "1"
+      - key: NPM_CONFIG_LEGACY_PEER_DEPS
+        value: "true"
